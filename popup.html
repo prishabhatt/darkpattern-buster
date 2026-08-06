@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Light Header -->
+    <div class="header-section">
+      <h1 class="title">DarkPattern Buster</h1>
+      <p class="subtitle">Shaped by AI, Driven by Transparency</p>
+    </div>
+
+    <!-- Loading State (Dark Card) -->
+    <div id="loading-state" class="dark-card">
+      <div class="spinner"></div>
+      <p class="loading-text">Analyzing page elements...</p>
+    </div>
+
+    <!-- Result State (Dark Card) -->
+    <div id="result-state" class="dark-card hidden theme-green">
+      
+      <div class="score-container">
+        <div class="score-circle">
+          <span id="score-value">--</span>
+        </div>
+      </div>
+      
+      <h2 id="status-badge" class="status-badge">LOOKS HONEST</h2>
+      <p id="primary-msg" class="primary-msg">We focus on exposing manipulative tactics, keeping your shopping safe.</p>
+
+    </div>
+
+    <!-- Light Details Section (Pill Tags) -->
+    <div class="details-section">
+      <h3 id="secondary-title" class="secondary-title">Analysis context</h3>
+      <p id="secondary-msg" class="secondary-msg">No deceptive patterns detected.</p>
+      
+      <ul id="tricks-list" class="tricks-list hidden">
+        <!-- JS will inject <li> tags here, styled as pills -->
+      </ul>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
