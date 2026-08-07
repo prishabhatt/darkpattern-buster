@@ -3,14 +3,13 @@ from flask_cors import CORS
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
-# This allows your Chrome Extension to communicate with this server
 CORS(app) 
 
 def clean_html(raw_html):
-    """Step 4: Sanitization. Strips visual fluff to save AI tokens."""
+    
     soup = BeautifulSoup(raw_html, 'html.parser')
     
-    # Destroy all script, style, image, and meta tags
+    
     for element in soup(['script', 'style', 'img', 'svg', 'meta', 'link', 'noscript']):
         element.decompose()
         
@@ -25,7 +24,7 @@ def analyze_page():
     if not raw_html:
         return jsonify({"error": "No HTML provided"}), 400
 
-    # Adding flush=True forces Python to print immediately to VS Code terminal
+    
     print(f"\n📥 Received request for: {url}", flush=True)
     print(f"📦 Raw HTML length: {len(raw_html)} characters", flush=True)
 
