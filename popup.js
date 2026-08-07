@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadingState = document.getElementById('loading-state');
     const resultState = document.getElementById('result-state');
     
-    // UI Elements
+    
     const scoreValue = document.getElementById('score-value');
     const scoreCircle = document.getElementById('score-circle');
     const statusBadge = document.getElementById('status-badge');
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tricksList = document.getElementById('tricks-list');
 
     try {
-        // Step 1: Get the active tab in Chrome
+        
         let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
         // GUARDRAIL: Prevent scraping Chrome internal pages
@@ -22,19 +22,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             return; // Stop execution here
         }
 
-        // Step 2: Inject a script to copy the live website's HTML
+        
         let extractionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => document.documentElement.outerHTML,
         });
 
-        // Step 3: Package the live data
+        
+        const kbSize = (extractionResults[0].result.length / 1024).toFixed(1);
+        document.getElementById('payload-size').innerText = `${kbSize} KB`;
+
+        
         const livePayload = {
             url: tab.url,
             html: extractionResults[0].result
         };
 
-        // Step 4: Fire it to your Python Backend
+        
         const response = await fetch('http://localhost:5001/analyze', {
             method: 'POST',
             headers: {
@@ -43,21 +47,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             body: JSON.stringify(livePayload)
         });
 
-        // Check if the Python server is actually responding
+        
         if (!response.ok) {
             throw new Error(`Server returned status: ${response.status}`);
         }
 
         const data = await response.json();
 
-        // Step 5: Render the UI
+        
         loadingState.classList.add('hidden');
         resultState.classList.remove('hidden');
 
         const score = data.honesty_score;
         scoreValue.innerText = score;
 
-        // Dynamic Theme Logic
+        
         resultState.classList.remove('theme-green', 'theme-yellow', 'theme-red');
 
         if (score >= 80) {
