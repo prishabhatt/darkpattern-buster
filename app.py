@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import requests
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 from bs4 import BeautifulSoup
@@ -87,6 +88,21 @@ def fallback_dark_pattern_check(url, cleaned_html):
         "patterns_detected": patterns
     }
 
+@app.route('/fetch-html', methods=['POST'])
+def fetch_html():
+    data = request.json or {}
+    target_url = data.get('url', '')
+    
+    if not target_url:
+        return jsonify({"error": "No URL provided"}), 400
+        
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        resp = requests.get(target_url, headers=headers, timeout=8)
+        return jsonify({"html": resp.text}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch page: {str(e)}"}), 500
+
 @app.route('/analyze', methods=['POST'])
 def analyze_page():
     data = request.json or {}
@@ -122,7 +138,7 @@ def analyze_page():
     fallback = fallback_dark_pattern_check(url, cleaned_html)
     return jsonify(fallback), 200
 
-TEST_PAGE_TEMPLATE = """<!DOCTYPE html>
+TEST_PAGE_TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -162,7 +178,10 @@ TEST_PAGE_TEMPLATE = """<!DOCTYPE html>
         
         <div class="card">
             <label for="target-url">Target Webpage URL</label>
-            <input type="text" id="target-url" value="https://example-store.com/checkout">
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <input type="text" id="target-url" placeholder="https://example.com" style="margin-bottom:0;">
+                <button type="button" class="btn-preset" onclick="fetchLiveHtml()" style="white-space: nowrap; background: #0284c7; color: white;">Fetch HTML</button>
+            </div>
             
             <label>Load Preset Test Scenarios</label>
             <div class="preset-btns">
@@ -221,13 +240,41 @@ TEST_PAGE_TEMPLATE = """<!DOCTYPE html>
 
         loadPreset('urgency');
 
+        async function fetchLiveHtml() {
+            const url = document.getElementById('target-url').value;
+            const textarea = document.getElementById('html-code');
+            
+            if (!url) return alert('Please enter a target URL');
+            
+            textarea.value = 'Fetching live HTML from target URL...';
+            
+            try {
+                const res = await fetch('/fetch-html', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json();
+                
+                if (data.html) {
+                    textarea.value = data.html;
+                } else {
+                    textarea.value = '';
+                    alert('Fetch Error: ' + (data.error || 'Failed to fetch HTML'));
+                }
+            } catch (err) {
+                textarea.value = '';
+                alert('Fetch Error: ' + err.message);
+            }
+        }
+
         async function runAnalysis() {
             const url = document.getElementById('target-url').value;
             const html = document.getElementById('html-code').value;
             const resultsDiv = document.getElementById('results');
             
             if (!html.trim()) {
-                alert('Please enter HTML code to analyze.');
+                alert('Please enter or fetch HTML code to analyze.');
                 return;
             }
 
@@ -275,7 +322,8 @@ TEST_PAGE_TEMPLATE = """<!DOCTYPE html>
                     patterns.forEach(p => {
                         const li = document.createElement('li');
                         li.className = 'pill-item';
-                        li.innerHTML = `<span class="pill-category">\${p.category}</span><span class="pill-desc">\${p.description} (\${p.element_html_id})</span>`;
+                        li.innerHTML = '<span class="pill-category">' + p.category + '</span>' +
+                                       '<span class="pill-desc">' + p.description + ' (' + p.element_html_id + ')</span>';
                         patternList.appendChild(li);
                     });
                 }
