@@ -292,7 +292,7 @@ html, body {
   position: relative;
   width: 244px;
   margin-top: 0;
-  background: #F5F5F2; /* clean professional paper */
+  background: #111111; /* deep black — matches .dark-card / final scoreboard */
   border-radius: 0 0 10px 10px;
   padding: 26px 20px 22px;
   display: flex;
@@ -300,12 +300,11 @@ html, body {
   align-items: center;
   gap: 18px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  /* Phase 1: slide down out of the slot. Starts fully retracted
-     (behind the slot, invisible) and eases down to rest. Transform
-     only — 60fps friendly, no layout properties animated. */
   transform: translateY(-100%);
   animation: receipt-slide-down 1.3s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
   animation-delay: 0.15s;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: none; /* Keeps the top edge seamless with the printer slot */
 }
 
 @keyframes receipt-slide-down {
@@ -317,7 +316,7 @@ html, body {
   /* a thin perforation line near the top, like a tear-off receipt */
   width: 100%;
   height: 0;
-  border-top: 2px dashed rgba(0, 0, 0, 0.12);
+  border-top: 2px dashed rgba(255, 255, 255, 0.14);
   margin-top: -8px;
 }
 
@@ -327,10 +326,10 @@ html, body {
   height: 12px;
   margin-top: -4px;
   background:
-    linear-gradient(135deg, #F5F5F2 50%, transparent 50%) 0 0 / 14px 14px,
-    linear-gradient(-135deg, #F5F5F2 50%, transparent 50%) 0 0 / 14px 14px;
+    linear-gradient(135deg, #111111 50%, transparent 50%) 0 0 / 14px 14px,
+    linear-gradient(-135deg, #111111 50%, transparent 50%) 0 0 / 14px 14px;
   background-color: transparent;
-  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.15));
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.35));
 }
 
 /* Only the active scene (matching the current theme class on the
@@ -362,15 +361,12 @@ html, body {
 
 .prereveal-label {
   margin: 0;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
 }
-
-.prereveal-scene--red .prereveal-label { color: var(--risk-red); }
-.prereveal-scene--yellow .prereveal-label { color: var(--risk-amber); }
-.prereveal-scene--green .prereveal-label { color: var(--risk-emerald); }
 
 /* Smooth fade+scale for the scoreboard as it's revealed underneath the
    overlay. Opacity/transform only — no layout properties animated. */
@@ -478,7 +474,7 @@ html, body {
   width: 132px;
   height: 30px;
   border-radius: 50%;
-  background: #17171a;
+  background: #2b2b2e; /*Hole from which thumb pops out*/
   z-index: 3;
 }
 
@@ -490,7 +486,7 @@ html, body {
   height: 78px;
   transform-origin: 50% 100%;
   transform: translateX(-50%) translateY(6px) scale(0.85);
-  z-index: 2;
+  z-index: 4;
   opacity: 0;
   /* Waits for the receipt-content fade-in (1.35s) to finish, then runs
      the pop-out-of-portal motion once, holds, then loops gently. */
@@ -516,34 +512,12 @@ html, body {
   50%      { transform: translateX(-50%) translateY(-3px) scale(1.02); }
 }
 
-.portal-star {
-  position: absolute;
-  color: var(--risk-amber);
-  font-size: 13px;
-  line-height: 1;
-  z-index: 4;
-  opacity: 0;
-  animation: portal-twinkle 2.6s ease-in-out infinite;
-  animation-delay: 1.75s;
-}
-
-.portal-star--1 { top: 12px; left: 20px; font-size: 11px; }
-.portal-star--2 { top: 4px;  right: 18px; font-size: 15px; animation-delay: 2.1s; }
-.portal-star--3 { top: 36px; left: 4px;   font-size: 9px;  animation-delay: 2.5s; }
-.portal-star--4 { top: 30px; right: 0px;  font-size: 12px; animation-delay: 2.9s; }
-
-@keyframes portal-twinkle {
-  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
-  50%      { opacity: 1; transform: scale(1) rotate(20deg); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .receipt,
   .prereveal-scene,
   .sos-ripple,
   .caution-pop,
-  .thumb-rig,
-  .portal-star {
+  .thumb-rig {
     animation: none !important;
   }
   .receipt { transform: translateY(0); }
@@ -551,5 +525,4 @@ html, body {
   .sos-ripple { opacity: 0; }
   .caution-pop { opacity: 1; transform: none; }
   .thumb-rig { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-  .portal-star { opacity: 0.9; }
 }
