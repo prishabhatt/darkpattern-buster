@@ -5,8 +5,9 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+
   <div class="app-container">
-    
+
     <!-- Light Header -->
     <div class="header-section">
       <h1 class="title">DarkPattern Buster</h1>
@@ -19,20 +20,87 @@
       <p class="loading-text">Analyzing page elements...</p>
     </div>
 
-    
+    <!-- ================================================================ -->
+    <!-- Pre-reveal "Analysis Report" receipt printer                      -->
+    <!-- MOVED: now lives inside .app-container, as a sibling of           -->
+    <!-- #result-state, instead of a position:fixed full-viewport overlay. -->
+    <!-- It shares the .dark-card box model (so width matches for free)   -->
+    <!-- and the .scoreboard-slot class (so height is pinned to the exact -->
+    <!-- same value as #result-state). Animation logic/timings untouched. -->
+    <!-- ================================================================ -->
+    <div id="prereveal-overlay" class="prereveal-overlay dark-card scoreboard-slot hidden">
+
+      <div class="printer-slot">
+        <span class="printer-slot__glow"></span>
+      </div>
+
+      <div class="receipt-wrap">
+        <div id="prereveal-receipt" class="receipt">
+
+          <div class="receipt__perf"></div>
+
+          <!-- RED: SOS beacon -->
+          <div class="prereveal-scene prereveal-scene--red">
+            <div class="sos-beacon">
+              <span class="sos-ripple sos-ripple--1"></span>
+              <span class="sos-ripple sos-ripple--2"></span>
+              <span class="sos-ripple sos-ripple--3"></span>
+              <span class="sos-core"></span>
+            </div>
+            <p class="prereveal-label">High Risk</p>
+          </div>
+
+          <!-- YELLOW: caution sign -->
+          <div class="prereveal-scene prereveal-scene--yellow">
+            <div class="caution-pop">
+              <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M32 4 L60 54 L4 54 Z" fill="#2A2A2E" stroke="#F2A900" stroke-width="3" stroke-linejoin="round"/>
+                <rect x="29" y="22" width="6" height="18" rx="3" fill="#F2A900"/>
+                <circle cx="32" cy="46" r="3.6" fill="#F2A900"/>
+              </svg>
+            </div>
+            <p class="prereveal-label">Medium Risk</p>
+          </div>
+
+          <!-- GREEN: thumbs-up popping out of portal -->
+          <div class="prereveal-scene prereveal-scene--green">
+            <div class="portal-stage">
+              <span class="portal-star portal-star--1">✦</span>
+              <span class="portal-star portal-star--2">✦</span>
+              <span class="portal-star portal-star--3">✦</span>
+              <span class="portal-star portal-star--4">✦</span>
+
+              <div class="thumb-rig">
+                <svg viewBox="0 0 64 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="20" y="46" width="24" height="42" rx="12" fill="#F4C6A8"/>
+                  <rect x="14" y="30" width="30" height="26" rx="13" fill="#F7D3B8"/>
+                  <path d="M30 10 C30 4 38 4 38 10 L38 30 L28 30 L28 16 C28 12 30 10 30 10 Z" fill="#F7D3B8"/>
+                </svg>
+              </div>
+
+              <div class="portal-oval"></div>
+            </div>
+            <p class="prereveal-label">Low Risk</p>
+          </div>
+
+          <div class="receipt__tear"></div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Result State (Dark Card) -->
-    <div id="result-state" class="dark-card hidden theme-green">
-      
+    <div id="result-state" class="dark-card scoreboard-slot hidden theme-green">
+
       <div class="score-container">
         <div class="score-circle">
           <span id="score-value">--</span>
         </div>
       </div>
-      
-      <h2 id="status-badge" class="status-badge">LOOKS HONEST</h2>
+
+      <h2 id="status-badge" class="status-badge">LOOKS HONEST <span id="status-icon"></span></h2>
       <p id="primary-msg" class="primary-msg">We focus on exposing manipulative tactics, keeping your shopping safe.</p>
 
-      <!-- NEW: Professional Telemetry Bar -->
       <div class="telemetry-bar">
         <div class="telemetry-item">
           <span class="t-label">Payload</span>
@@ -54,9 +122,8 @@
     <div class="details-section">
       <h3 id="secondary-title" class="secondary-title">Analysis context</h3>
       <p id="secondary-msg" class="secondary-msg">No deceptive patterns detected.</p>
-      
+
       <ul id="tricks-list" class="tricks-list hidden">
-        <!-- JS will inject <li> tags here, styled as pills -->
       </ul>
     </div>
 
