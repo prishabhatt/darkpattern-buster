@@ -105,12 +105,19 @@ def fetch_html():
 
 @app.route('/analyze', methods=['POST'])
 def analyze_page():
+    import time
+    start_time = time.time()
+    
     data = request.json or {}
     url = data.get('url', 'Unknown URL')
     raw_html = data.get('html', '')
     
     if not raw_html:
         return jsonify({"error": "No HTML provided"}), 400
+
+    # Count raw elements before cleaning
+    soup = BeautifulSoup(raw_html, 'html.parser')
+    dom_count = len(soup.find_all())
 
     cleaned_html = clean_html(raw_html)
 
@@ -129,13 +136,19 @@ def analyze_page():
             content = response.choices[0].message.content
             result = json.loads(content)
             result["url_scanned"] = url
+            result["dom_count"] = dom_count
+            result["latency_ms"] = int((time.time() - start_time) * 1000)
             return jsonify(result), 200
         except Exception as e:
             fallback = fallback_dark_pattern_check(url, cleaned_html)
             fallback["api_notice"] = f"Llama API fallback engaged: {str(e)}"
+            fallback["dom_count"] = dom_count
+            fallback["latency_ms"] = int((time.time() - start_time) * 1000)
             return jsonify(fallback), 200
 
     fallback = fallback_dark_pattern_check(url, cleaned_html)
+    fallback["dom_count"] = dom_count
+    fallback["latency_ms"] = int((time.time() - start_time) * 1000)
     return jsonify(fallback), 200
 
 TEST_PAGE_TEMPLATE = r"""<!DOCTYPE html>
