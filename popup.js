@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prerevealOverlay = document.getElementById('prereveal-overlay');
 
     let allDetectedPatterns = [];
+    let currentDomCount = 0;
+    let currentScanTime = 0;
 
     try {
         let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -23,15 +25,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let extractionResults = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => document.documentElement.outerHTML,
+            func: () => {
+                return {
+                    html: document.documentElement.outerHTML,
+                    domCount: document.querySelectorAll('*').length
+                };
+            },
         });
 
-        const kbSize = (extractionResults[0].result.length / 1024).toFixed(1);
+        const rawHtml = extractionResults[0].result.html;
+        currentDomCount = extractionResults[0].result.domCount;
+
+        const kbSize = (rawHtml.length / 1024).toFixed(1);
         document.getElementById('payload-size').innerText = `${kbSize} KB`;
 
         const livePayload = {
             url: tab.url,
-            html: extractionResults[0].result
+            html: rawHtml
         };
 
         const response = await fetch('http://localhost:5001/analyze', {
@@ -45,10 +55,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const data = await response.json();
-
+        
         // 1. Extract values from backend JSON output
         const score = data.honesty_score ?? 100;
         allDetectedPatterns = data.patterns_detected || [];
+        
+        // 2. Fetch the true AI latency and DOM count directly from your Python server
+        currentDomCount = data.dom_count || 0;
+        currentScanTime = data.latency_ms || 0;
 
         // 2. Fetch any dynamic traps stored by content.js
         chrome.storage.local.get(['dynamicTraps'], (result) => {
@@ -80,24 +94,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         scoreValue.innerText = score;
         resultState.classList.remove('theme-green', 'theme-yellow', 'theme-red');
 
+        // Render the technical metrics
+        const metricsEl = document.getElementById('technical-metrics');
+        if (metricsEl && currentDomCount > 0) {
+            metricsEl.innerText = `Audited ${currentDomCount.toLocaleString()} DOM elements in ${currentScanTime}ms across 6 threat filters.`;
+            metricsEl.classList.remove('hidden');
+        }
+
         if (score >= 80 && patterns.length === 0) {
             resultState.classList.add('theme-green');
             statusBadge.innerText = "LOOKS HONEST";
-            statusIcon.innerText = "✅";
             primaryMsg.innerText = "This page looks honest. We didn't find any manipulative design tricks.";
             secondaryTitle.innerText = "This page looks honest";
             renderTricks(patterns, "We didn't find any countdown pressure, sneaky checkboxes, or hidden fees on this page.");
         } else if (score >= 50) {
             resultState.classList.add('theme-yellow');
             statusBadge.innerText = "SOME TRICKS FOUND";
-            statusIcon.innerText = "⚠️";
             primaryMsg.innerText = "This page uses a few tactics that are worth a second look before you buy.";
             secondaryTitle.innerText = "A few things to watch for";
             renderTricks(patterns, "We found patterns nudging you to decide faster:");
         } else {
             resultState.classList.add('theme-red');
             statusBadge.innerText = "HIGH RISK";
-            statusIcon.innerText = "🚨";
             primaryMsg.innerText = "This page relies heavily on manipulative design to rush your decision.";
             secondaryTitle.innerText = "Aggressive tactics detected";
             renderTricks(patterns, "We found several manipulative patterns here:");
