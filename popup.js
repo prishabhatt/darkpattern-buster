@@ -1,176 +1,157 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const loadingState = document.getElementById('loading-state');
-    const resultState = document.getElementById('result-state');
-    
-    const scoreValue = document.getElementById('score-value');
-    const statusBadge = document.getElementById('status-badge');
-    const primaryMsg = document.getElementById('primary-msg');
-    const statusIcon = document.getElementById('status-icon');
-    const secondaryTitle = document.getElementById('secondary-title');
-    const secondaryMsg = document.getElementById('secondary-msg');
+    const scoreboardSlot = document.getElementById('scoreboard-slot');
+    const detailsSection = document.getElementById('details-section');
     const tricksList = document.getElementById('tricks-list');
-    const prerevealOverlay = document.getElementById('prereveal-overlay');
-
-    let allDetectedPatterns = [];
-    let currentDomCount = 0;
-    let currentScanTime = 0;
+    const modelBadge = document.getElementById('model-badge');
 
     try {
-        let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-        if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
-            loadingState.innerHTML = "<p>Cannot scan internal browser pages.<br>Please open a real e-commerce website.</p>";
+        // Get current active tab
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab || !tab.url) {
+            showError("No active tab found.");
             return;
         }
 
-        let extractionResults = await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: () => {
-                return {
-                    html: document.documentElement.outerHTML,
-                    domCount: document.querySelectorAll('*').length
-                };
-            },
-        });
+        // Fetch DOM content from the active tab
+        const pageHtml = await getPageHtml(tab.id);
 
-        const rawHtml = extractionResults[0].result.html;
-        currentDomCount = extractionResults[0].result.domCount;
-
-        const kbSize = (rawHtml.length / 1024).toFixed(1);
-        document.getElementById('payload-size').innerText = `${kbSize} KB`;
-
-        const livePayload = {
-            url: tab.url,
-            html: rawHtml
-        };
-
-        const response = await fetch('http://localhost:5001/analyze', {
+        // Send request to Flask backend for dark pattern analysis
+        const response = await fetch('http://127.0.0.1:5001/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(livePayload)
+            body: JSON.stringify({ url: tab.url, html: pageHtml })
         });
-
-        if (!response.ok) {
-            throw new Error(`Server returned status: ${response.status}`);
-        }
 
         const data = await response.json();
-        
-        // 1. Extract values from backend JSON output
-        const score = data.honesty_score ?? 100;
-        allDetectedPatterns = data.patterns_detected || [];
-        
-        // 2. Fetch the true AI latency and DOM count directly from your Python server
-        currentDomCount = data.dom_count || 0;
-        currentScanTime = data.latency_ms || 0;
+        renderResults(data);
 
-        // 2. Fetch any dynamic traps stored by content.js
-        chrome.storage.local.get(['dynamicTraps'], (result) => {
-            if (result.dynamicTraps && result.dynamicTraps.length > 0) {
-                allDetectedPatterns = [...allDetectedPatterns, ...result.dynamicTraps];
-            }
-            updateUI(score, allDetectedPatterns);
-        });
-
-        loadingState.classList.add('hidden');
-        runPreRevealThenReveal(score, prerevealOverlay, resultState);
-
-    } catch (error) {
-        console.error('Extraction/Network Error:', error);
-        loadingState.innerHTML = `<p>Error: Is your Python Backend running?</p><p style="font-size:10px; color:#999;">${error.message}</p>`;
-    }
-
-    // 3. Listen for live updates sent from content.js while popup is open
-    chrome.runtime.onMessage.addListener((message) => {
-        if (message.action === "DYNAMIC_TRAP_DETECTED") {
-            allDetectedPatterns.push(message.trap);
-            const currentScore = parseInt(scoreValue.innerText) || 70;
-            const adjustedScore = Math.max(10, currentScore - 15);
-            updateUI(adjustedScore, allDetectedPatterns);
-        }
-    });
-
-    function updateUI(score, patterns) {
-        scoreValue.innerText = score;
-        resultState.classList.remove('theme-green', 'theme-yellow', 'theme-red');
-
-        // Render the technical metrics
-        const metricsEl = document.getElementById('technical-metrics');
-        if (metricsEl && currentDomCount > 0) {
-            metricsEl.innerText = `Audited ${currentDomCount.toLocaleString()} DOM elements in ${currentScanTime}ms across 6 threat filters.`;
-            metricsEl.classList.remove('hidden');
-        }
-
-        if (score >= 80 && patterns.length === 0) {
-            resultState.classList.add('theme-green');
-            statusBadge.innerText = "LOOKS HONEST";
-            primaryMsg.innerText = "This page looks honest. We didn't find any manipulative design tricks.";
-            secondaryTitle.innerText = "This page looks honest";
-            renderTricks(patterns, "We didn't find any countdown pressure, sneaky checkboxes, or hidden fees on this page.");
-        } else if (score >= 50) {
-            resultState.classList.add('theme-yellow');
-            statusBadge.innerText = "SOME TRICKS FOUND";
-            primaryMsg.innerText = "This page uses a few tactics that are worth a second look before you buy.";
-            secondaryTitle.innerText = "A few things to watch for";
-            renderTricks(patterns, "We found patterns nudging you to decide faster:");
-        } else {
-            resultState.classList.add('theme-red');
-            statusBadge.innerText = "HIGH RISK";
-            primaryMsg.innerText = "This page relies heavily on manipulative design to rush your decision.";
-            secondaryTitle.innerText = "Aggressive tactics detected";
-            renderTricks(patterns, "We found several manipulative patterns here:");
-        }
-    }
-
-    function renderTricks(patterns, message) {
-        if (secondaryMsg) secondaryMsg.innerText = message;
-        if (!tricksList) return;
-
-        tricksList.innerHTML = "";
-
-        if (patterns && patterns.length > 0) {
-            tricksList.classList.remove('hidden');
-            patterns.forEach(trick => {
-                const li = document.createElement('li');
-                li.innerHTML = `<strong>${trick.category}</strong>: ${trick.description}`;
-                tricksList.appendChild(li);
-            });
-        } else {
-            tricksList.classList.add('hidden');
-        }
+    } catch (err) {
+        console.error("Error fetching analysis:", err);
+        showError("Could not connect to analysis server.");
     }
 });
 
-// Function to handle the receipt animation overlay before revealing the final score
-function runPreRevealThenReveal(score, prerevealOverlay, resultState) {
-    if (!prerevealOverlay || !resultState) {
-        if (resultState) resultState.classList.remove('hidden');
-        return;
+async function getPageHtml(tabId) {
+    try {
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => document.documentElement.outerHTML
+        });
+        return results[0]?.result || "";
+    } catch (e) {
+        return "";
     }
-
-    // 1. Remove previous risk classes from the overlay
-    prerevealOverlay.classList.remove('prereveal-red', 'prereveal-yellow', 'prereveal-green', 'hidden');
-
-    // 2. Set the overlay theme based on the score
-    if (score >= 80) {
-        prerevealOverlay.classList.add('prereveal-green');
-    } else if (score >= 50) {
-        prerevealOverlay.classList.add('prereveal-yellow');
-    } else {
-        prerevealOverlay.classList.add('prereveal-red');
-    }
-
-    // 3. Show receipt animation for 2.2 seconds, then transition to final result
-    setTimeout(() => {
-        prerevealOverlay.classList.add('prereveal-fade-out');
-
-        setTimeout(() => {
-            prerevealOverlay.classList.add('hidden');
-            prerevealOverlay.classList.remove('prereveal-fade-out');
-            
-            // Unhide result card and trigger entrance animation
-            resultState.classList.remove('hidden');
-            resultState.classList.add('result-fade-in');
-        }, 400); // 400ms fade transition
-    }, 2200); // 2.2s receipt animation duration
 }
+
+function renderResults(data) {
+    const loadingState = document.getElementById('loading-state');
+    const scoreboardSlot = document.getElementById('scoreboard-slot');
+    const detailsSection = document.getElementById('details-section');
+    const tricksList = document.getElementById('tricks-list');
+    const modelBadge = document.getElementById('model-badge');
+
+    if (loadingState) loadingState.classList.add('hidden');
+    if (scoreboardSlot) scoreboardSlot.classList.remove('hidden');
+    if (detailsSection) detailsSection.classList.remove('hidden');
+
+    // Update model badge text if provided by backend
+    if (modelBadge && data.model) {
+        modelBadge.textContent = data.model;
+    }
+
+    const score = data.honesty_score ?? 100;
+    const container = document.querySelector('.dark-card');
+    
+    container.classList.remove('theme-green', 'theme-yellow', 'theme-red');
+    
+    let themeClass = 'theme-green';
+    if (score < 50) themeClass = 'theme-red';
+    else if (score < 80) themeClass = 'theme-yellow';
+    container.classList.add(themeClass);
+
+    // Update scoreboard data fields
+    const scoreCircle = container.querySelector('.score-circle');
+    const statusBadge = container.querySelector('.status-badge');
+    const primaryMsg = container.querySelector('.primary-msg');
+
+    if (scoreCircle) scoreCircle.textContent = score;
+    
+    let statusText = "LOOKS HONEST";
+    if (score < 50) statusText = "HIGHLY MANIPULATIVE";
+    else if (score < 80) statusText = "SOME DECEPTIVE PATTERNS";
+
+    if (statusBadge) statusBadge.textContent = statusText;
+    if (primaryMsg) primaryMsg.textContent = data.api_notice || "Dark pattern scan finished.";
+
+    const patterns = data.patterns_detected || [];
+    if (tricksList && patterns.length > 0) {
+        tricksList.innerHTML = '';
+        patterns.forEach(pattern => {
+            const li = document.createElement('li');
+            li.className = 'trick-item';
+            
+            // Map element_html_id to a selector fallback for highlighters
+            if (pattern.element_html_id) {
+                li.dataset.selector = `#${pattern.element_html_id}, [id*="${pattern.element_html_id}"], [name="${pattern.element_html_id}"]`;
+            }
+
+            li.innerHTML = `
+                <div class="trick-type">${escapeHtml(pattern.category || 'Dark Pattern')}</div>
+                <p class="trick-reason">${escapeHtml(pattern.description || '')}</p>
+            `;
+            tricksList.appendChild(li);
+        });
+        tricksList.classList.remove('hidden');
+    } else if (tricksList) {
+        tricksList.innerHTML = '<li class="trick-item"><p class="trick-reason" style="text-align:center;">No dark patterns detected on this page!</p></li>';
+        tricksList.classList.remove('hidden');
+    }
+}
+
+function showError(msg) {
+    const loadingState = document.getElementById('loading-state');
+    if (loadingState) {
+        loadingState.innerHTML = `<p class="loading-text" style="color: #f43f5e;">${msg}</p>`;
+    }
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+// Global click listener for list items to trigger auto-scroll and highlight on the webpage
+document.addEventListener('click', async (e) => {
+    const trickItem = e.target.closest('.trick-item');
+    if (!trickItem) return;
+
+    const selector = trickItem.dataset.selector;
+    if (selector) {
+        try {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tab?.id) {
+                // Programmatically inject content.js right before sending message to ensure script is active
+                try {
+                    await chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        files: ['content.js']
+                    });
+                } catch (injectionErr) {
+                    // Script might already be injected or page doesn't allow injection; safely ignore
+                }
+
+                // Send message to content script to highlight the element
+                chrome.tabs.sendMessage(tab.id, {
+                    action: "HIGHLIGHT_DARK_PATTERN",
+                    selector: selector
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.warn("Could not send highlight message:", chrome.runtime.lastError.message);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Error sending highlight message:", err);
+        }
+    }
+});

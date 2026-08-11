@@ -21,7 +21,7 @@ PORT = int(os.getenv("PORT", 5001))
 SYSTEM_PROMPT = """You are an expert web transparency auditor specializing in detecting Dark Patterns in HTML code.
 Analyze the provided HTML and URL for deceptive design patterns such as:
 - Basket Sneaking: Automatically adding extra products, protection plans, or warranties to cart.
-- Hidden Costs: Undisclosed fees or price surges revealed only at late stages.
+- Hidden Costs: Deceptively concealing mandatory service, cleaning, or facility fees until the final checkout step (do NOT flag standard, transparently displayed facility pricing or upfront line items).
 - Fake Urgency / Scarcity: Countdown timers, misleading stock warnings, or fake live viewer counts.
 - Confirmshaming: Guilt-inducing or manipulative language on decline/cancel buttons.
 - Pre-checked Opt-ins: Default selection boxes favoring merchant profits over user choice.
@@ -74,11 +74,11 @@ def fallback_dark_pattern_check(url, cleaned_html):
             "description": "Manipulative decline choice phrasing designed to invoke shame or guilt."
         })
         
-    if re.search(r'service fee|handling charge|convenience fee|processing fee', text_content):
+    if re.search(r'hidden fee|surplus revealed|added at checkout', text_content):
         patterns.append({
             "category": "Hidden Costs",
             "element_html_id": "fee-row",
-            "description": "Potential undisclosed handling or convenience surcharge detected."
+            "description": "Fee revealed unexpectedly late in the user flow."
         })
 
     score = max(20, 100 - (len(patterns) * 25))
@@ -87,7 +87,7 @@ def fallback_dark_pattern_check(url, cleaned_html):
         "url_scanned": url,
         "patterns_detected": patterns
     }
-
+    
 @app.route('/fetch-html', methods=['POST'])
 def fetch_html():
     data = request.json or {}
@@ -115,7 +115,6 @@ def analyze_page():
     if not raw_html:
         return jsonify({"error": "No HTML provided"}), 400
 
-    # Count raw elements before cleaning
     soup = BeautifulSoup(raw_html, 'html.parser')
     dom_count = len(soup.find_all())
 

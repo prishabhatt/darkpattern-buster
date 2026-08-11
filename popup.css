@@ -1,528 +1,325 @@
-:root {
-  --theme-color: #00f0ff; /* Default Blue Glow */
-  --theme-glow: rgba(0, 240, 255, 0.4);
-  --card-height: 330px;
-}
-
-/* Telemetry Bar (Professional Data Display) */
-.telemetry-bar {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.telemetry-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.t-label {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #666666;
-}
-
-.t-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
 body {
-  width: 340px;
-  margin: 0;
-  padding: 16px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
-  background-color: #e5e5ea; /* Soft light grey background */
-  color: #1c1c1e;
+    width: 300px;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
 }
 
 .app-container {
-  background: #f2f2f7;
-  border-radius: 24px;
-  padding: 6px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-  border: 1px solid #ffffff;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-/* Light Header */
+/* Header Section */
 .header-section {
-  padding: 16px 16px 12px;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 8px;
 }
+
 .title {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  letter-spacing: -0.5px;
-  color: #1c1c1e;
+    margin: 0;
+    font-size: 1.05rem;
+    color: #f8fafc;
 }
+
 .subtitle {
-  font-size: 12px;
-  color: #8e8e93;
-  margin: 4px 0 0 0;
+    margin: 2px 0 0 0;
+    font-size: 0.65rem;
+    color: #94a3b8;
 }
 
-/* The Dark Card (Matches the right side of your image) */
+/* Dark Card Container & Scoreboard Slot */
 .dark-card {
-  background: #111111; /* Deep Black */
-  border-radius: 18px;
-  padding: 30px 20px;
-  text-align: center;
-  margin: 8px;
-  color: #ffffff;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-  position: relative;
-  overflow: hidden;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    box-sizing: border-box;
 }
 
-/* NEW: shared, fixed footprint for the receipt + scoreboard so the
-   handoff between them has zero layout shift. box-sizing: border-box
-   makes the height inclusive of each element's own padding, so it's a
-   true match even though .prereveal-overlay and #result-state use
-   different internal padding. Width already matches for free — both
-   are .dark-card siblings of .app-container with the same margin. */
 .scoreboard-slot {
-  box-sizing: border-box;
-  height: var(--card-height);
+    min-height: 145px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.hidden { display: none !important; }
-
-/* The Glowing Score Circle (The Pop of Color) */
-.score-circle {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  /* This is the magic glowing triangle effect adapted to a circle */
-  box-shadow: 0 0 40px var(--theme-glow), inset 0 0 20px var(--theme-glow);
-  transition: box-shadow 0.5s ease;
+/* Loading State */
+#loading-state {
+    text-align: center;
+    padding: 18px 12px;
 }
 
-.score-circle span {
-  font-size: 42px;
-  font-weight: 600;
-  color: #ffffff;
-  letter-spacing: -1px;
-}
-
-.status-badge {
-  font-size: 16px;
-  font-weight: 500;
-  margin: 0 0 8px;
-  color: #ffffff;
-}
-
-.primary-msg {
-  font-size: 11px;
-  color: #98989d;
-  line-height: 1.5;
-  margin: 0;
-  padding: 0 10px;
-}
-
-/* Light Details Section (Matches the left side of your image) */
-.details-section {
-  padding: 16px;
-}
-.secondary-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #1c1c1e;
-  margin: 0 0 4px;
-}
-.secondary-msg {
-  font-size: 11px;
-  color: #8e8e93;
-  margin: 0 0 12px;
-}
-
-/* Pill Tags */
-.tricks-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.tricks-list li {
-  background: #ffffff;
-  border: 1px solid #d1d1d6;
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 11px;
-  color: #1c1c1e;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-/* Loading Spinner inside Dark Card */
 .spinner {
-  width: 30px; height: 30px;
-  border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #fff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 10px auto 20px;
+    width: 22px;
+    height: 22px;
+    margin: 0 auto 8px auto;
+    border: 3px solid #334155;
+    border-top: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
 }
-.loading-text { font-size: 12px; color: #98989d; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* Dynamic Theme CSS Variables applied via JS */
-.theme-green { --theme-color: #34c759; --theme-glow: rgba(52, 199, 89, 0.25); }
-.theme-yellow { --theme-color: #ffcc00; --theme-glow: rgba(255, 204, 0, 0.25); }
-.theme-red { --theme-color: #ff3b30; --theme-glow: rgba(255, 59, 48, 0.25); }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
+.loading-text {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
 
-/* ================================================================
-   NEW: Pre-reveal Overlay — "Analysis Report" receipt printer
-   Fully additive block — does not modify any rule above.
-   Dark, professional backdrop (matches .dark-card's near-black) with
-   a printer slot at top; a receipt card slides down out of it, shows
-   the risk state, then the whole overlay fades to reveal the
-   scoreboard. See popup.js: runPreRevealThenReveal.
-   ================================================================ */
-
-/* Professional accent palette — used as text/icon/glow colors on the
-   receipt, never as full-bleed backgrounds. */
+/* Prereveal Overlay & Receipt Printer Styles */
 .prereveal-overlay {
-  --risk-red: #E5484D;
-  --risk-red-glow: rgba(229, 72, 77, 0.35);
-  --risk-amber: #F2A900;
-  --risk-amber-glow: rgba(242, 169, 0, 0.32);
-  --risk-emerald: #30D17F;
-  --risk-emerald-glow: rgba(48, 209, 127, 0.32);
+    position: relative;
+    overflow: hidden;
+    padding: 8px !important;
 }
 
-html, body {
-  position: relative;
-}
-
-.prereveal-overlay {
-  position: relative;       /* was: fixed; inset: 0; z-index: 1000; */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #0d0d0f;      /* unchanged color */
-  overflow: hidden;         /* also inherited from .dark-card, kept explicit */
-  padding: 0;                /* NEW: cancel .dark-card's 30px/20px padding —
-                                 the printer slot needs to sit flush at the
-                                 top, same as it always has */
-  transition: opacity 0.4s ease;
-}
-
-.prereveal-overlay.hidden {
-  display: none;
-}
-
-.prereveal-overlay.prereveal-fade-out {
-  opacity: 0;
-}
-
-/* ---------- Printer slot ---------- */
 .printer-slot {
-  position: relative;
-  width: 220px;
-  height: 16px;
-  margin-top: 34px;
-  flex: none;
-  background: linear-gradient(180deg, #29292d 0%, #17171a 100%);
-  border-radius: 10px;
-  box-shadow:
-    inset 0 2px 3px rgba(0, 0, 0, 0.6),
-    0 1px 0 rgba(255, 255, 255, 0.04);
-  z-index: 2;
-}
-
-.printer-slot::before {
-  /* the dark slit the receipt threads through */
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 190px;
-  height: 4px;
-  border-radius: 2px;
-  background: #000000;
+    width: 100%;
+    height: 4px;
+    background: #0f172a;
+    border-radius: 2px;
+    position: relative;
+    margin-bottom: 8px;
 }
 
 .printer-slot__glow {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 190px;
-  height: 26px;
-  border-radius: 50%;
-  filter: blur(10px);
-  opacity: 0.55;
-  background: var(--risk-emerald-glow);
-  transition: background 0.3s ease;
+    position: absolute;
+    top: 0; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px; 
+    height: 100%;
+    background: #6366f1;
+    filter: blur(3px);
 }
 
-.prereveal-overlay.prereveal-red .printer-slot__glow { background: var(--risk-red-glow); }
-.prereveal-overlay.prereveal-yellow .printer-slot__glow { background: var(--risk-amber-glow); }
-.prereveal-overlay.prereveal-green .printer-slot__glow { background: var(--risk-emerald-glow); }
-
-/* ---------- Receipt: slides down out of the slot ---------- */
-/* The wrap clips the receipt above the slot line so it looks like it's
-   emerging from inside the printer, then reveals as it slides down. */
 .receipt-wrap {
-  position: relative;
-  width: 100%;
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
 }
 
 .receipt {
-  position: relative;
-  width: 244px;
-  margin-top: 0;
-  background: #111111; /* deep black — matches .dark-card / final scoreboard */
-  border-radius: 0 0 10px 10px;
-  padding: 26px 20px 22px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  transform: translateY(-100%);
-  animation: receipt-slide-down 1.3s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  animation-delay: 0.15s;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-top: none; /* Keeps the top edge seamless with the printer slot */
-}
-
-@keyframes receipt-slide-down {
-  0%   { transform: translateY(-100%); }
-  100% { transform: translateY(0); }
+    background: #ffffff;
+    color: #0f172a;
+    width: 100%;
+    border-radius: 4px;
+    padding: 12px;
+    text-align: center;
+    position: relative;
 }
 
 .receipt__perf {
-  /* a thin perforation line near the top, like a tear-off receipt */
-  width: 100%;
-  height: 0;
-  border-top: 2px dashed rgba(255, 255, 255, 0.14);
-  margin-top: -8px;
+    border-top: 2px dashed #cbd5e1;
+    margin-bottom: 8px;
 }
 
 .receipt__tear {
-  /* jagged torn-paper bottom edge */
-  width: 100%;
-  height: 12px;
-  margin-top: -4px;
-  background:
-    linear-gradient(135deg, #111111 50%, transparent 50%) 0 0 / 14px 14px,
-    linear-gradient(-135deg, #111111 50%, transparent 50%) 0 0 / 14px 14px;
-  background-color: transparent;
-  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.35));
+    border-bottom: 2px dashed #cbd5e1;
+    margin-top: 8px;
 }
 
-/* Only the active scene (matching the current theme class on the
-   overlay) is shown; the other two stay unmounted from view. Each
-   scene's content fades/pops in only once the receipt has finished
-   sliding (see animation-delay below, timed to land after the 1.3s
-   slide + its own 0.15s start delay). */
 .prereveal-scene {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  opacity: 0;
-  animation: receipt-content-in 0.5s ease forwards;
-  animation-delay: 1.35s;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
 }
 
-.prereveal-overlay.prereveal-red .prereveal-scene--red,
-.prereveal-overlay.prereveal-yellow .prereveal-scene--yellow,
-.prereveal-overlay.prereveal-green .prereveal-scene--green {
-  display: flex;
-}
-
-@keyframes receipt-content-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+.prereveal-scene--red { display: flex; }
 
 .prereveal-label {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+    margin: 6px 0 0 0;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #0f172a;
 }
 
-/* Smooth fade+scale for the scoreboard as it's revealed underneath the
-   overlay. Opacity/transform only — no layout properties animated. */
-#result-state {
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-#result-state.result-fade-in {
-  animation: prereveal-result-in 0.45s ease forwards;
-}
-
-@keyframes prereveal-result-in {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-/* ---------- HIGH RISK: SOS beacon ---------- */
-/* Circle at the center with continuous outward pulsating ripple
-   rings in professional crimson, like a radar/emergency beacon. */
+/* SOS Beacon Animation */
 .sos-beacon {
-  position: relative;
-  width: 84px;
-  height: 84px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    width: 36px; 
+    height: 36px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sos-core {
-  position: relative;
-  z-index: 2;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--risk-red);
-  box-shadow: 0 4px 14px var(--risk-red-glow);
+    width: 14px; 
+    height: 14px;
+    background: #ef4444;
+    border-radius: 50%;
 }
 
 .sos-ripple {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--risk-red);
-  opacity: 0;
-  animation: sos-pulse 2.1s cubic-bezier(0.3, 0, 0.5, 1) infinite;
+    position: absolute;
+    border: 2px solid #ef4444;
+    border-radius: 50%;
+    animation: ripple 1.5s infinite;
 }
 
-.sos-ripple--1 { animation-delay: 0s; }
-.sos-ripple--2 { animation-delay: 0.7s; }
-.sos-ripple--3 { animation-delay: 1.4s; }
+.sos-ripple--1 { width: 22px; height: 22px; animation-delay: 0s; }
+.sos-ripple--2 { width: 30px; height: 30px; animation-delay: 0.5s; }
+.sos-ripple--3 { width: 36px; height: 36px; animation-delay: 1s; }
 
-@keyframes sos-pulse {
-  0%   { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(2.6); opacity: 0; }
+@keyframes ripple {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.3); opacity: 0; }
 }
 
-/* ---------- MEDIUM RISK: caution sign, rubber-band bounce pop-in ---------- */
-.caution-pop {
-  width: 64px;
-  height: 64px;
-  animation: caution-bounce-in 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-             caution-idle-wobble 2.4s ease-in-out 0.9s infinite;
+.caution-pop, .portal-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.caution-pop svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-  filter: drop-shadow(0 6px 10px var(--risk-amber-glow));
+.caution-pop svg, .portal-stage svg {
+    width: 36px;
+    height: 36px;
 }
 
-@keyframes caution-bounce-in {
-  0%   { transform: scale(0) rotate(-8deg); opacity: 0; }
-  45%  { transform: scale(1.18) rotate(4deg); opacity: 1; }
-  65%  { transform: scale(0.92) rotate(-2deg); }
-  82%  { transform: scale(1.05) rotate(1deg); }
-  100% { transform: scale(1) rotate(0deg); }
+/* Score Circle & Dynamic Theme Colors */
+.score-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
 }
 
-@keyframes caution-idle-wobble {
-  0%, 100% { transform: rotate(0deg); }
-  50%      { transform: rotate(3deg); }
+.score-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    border: 2px solid #6366f1;
+    color: #6366f1;
 }
 
-/* ---------- LOW RISK: thumbs-up popping out of a dark oval portal ---------- */
-/* Plays directly on the receipt, only after the receipt has finished
-   sliding down (animation-delay matches .prereveal-scene above). */
-.portal-stage {
-  position: relative;
-  width: 180px;
-  height: 128px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+.status-badge {
+    margin: 0 0 4px 0;
+    font-size: 0.85rem;
+    text-align: center;
+    font-weight: bold;
 }
 
-.portal-oval {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 132px;
-  height: 30px;
-  border-radius: 50%;
-  background: #2b2b2e; /*Hole from which thumb pops out*/
-  z-index: 3;
+.theme-green .score-circle { border-color: #10b981; color: #10b981; }
+.theme-green .status-badge { color: #10b981; }
+
+.theme-yellow .score-circle { border-color: #f59e0b; color: #f59e0b; }
+.theme-yellow .status-badge { color: #f59e0b; }
+
+.theme-red .score-circle { border-color: #f43f5e; color: #f43f5e; }
+.theme-red .status-badge { color: #f43f5e; }
+
+.primary-msg {
+    margin: 0 0 10px 0;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    text-align: center;
+    line-height: 1.25;
 }
 
-.thumb-rig {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  width: 56px;
-  height: 78px;
-  transform-origin: 50% 100%;
-  transform: translateX(-50%) translateY(6px) scale(0.85);
-  z-index: 4;
-  opacity: 0;
-  /* Waits for the receipt-content fade-in (1.35s) to finish, then runs
-     the pop-out-of-portal motion once, holds, then loops gently. */
-  animation: thumb-pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-             thumb-idle 2.4s ease-in-out 2.05s infinite;
-  animation-delay: 1.55s, 2.15s;
+/* Telemetry Bar */
+.telemetry-bar {
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #334155;
+    padding-top: 6px;
 }
 
-.thumb-rig svg {
-  width: 100%;
-  height: 100%;
-  display: block;
+.telemetry-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-@keyframes thumb-pop-in {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(50px) scale(0.8); }
-  60%  { opacity: 1; transform: translateX(-50%) translateY(-6px) scale(1.05); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+.t-label {
+    font-size: 0.55rem;
+    color: #94a3b8;
+    text-transform: uppercase;
 }
 
-@keyframes thumb-idle {
-  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
-  50%      { transform: translateX(-50%) translateY(-3px) scale(1.02); }
+.t-value {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #6366f1;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .receipt,
-  .prereveal-scene,
-  .sos-ripple,
-  .caution-pop,
-  .thumb-rig {
-    animation: none !important;
-  }
-  .receipt { transform: translateY(0); }
-  .prereveal-scene { opacity: 1; }
-  .sos-ripple { opacity: 0; }
-  .caution-pop { opacity: 1; transform: none; }
-  .thumb-rig { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+/* Details Section & Trick Items */
+.details-section {
+    padding-top: 2px;
+}
+
+.secondary-title {
+    margin: 0 0 2px 0;
+    font-size: 0.8rem;
+    color: #f8fafc;
+}
+
+.secondary-msg {
+    margin: 0 0 6px 0;
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.tricks-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.trick-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.trick-item:hover {
+    background: #334155;
+    border-color: #6366f1;
+}
+
+.trick-type {
+    color: #f43f5e;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.trick-text {
+    margin: 0 0 3px 0;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: #f8fafc;
+}
+
+.trick-reason {
+    margin: 0;
+    font-size: 0.65rem;
+    color: #94a3b8;
+}
+
+.hidden {
+    display: none !important;
 }
